@@ -8,7 +8,10 @@ PIN_B_MOTEUR_GAUCHE = 24
 PIN_A_MOTEUR_DROIT = 27
 PIN_B_MOTEUR_DROIT = 22
 
-
+#
+# Pour le moteur de gauche [Hall sensor A Vout (câble blue) broche 16, Hall sensor B Vout (câble move) broche 18]
+# Pour le moteur de droite [Hall sensor A Vout (câble blue) broche 13, Hall sensor B Vout (câble move) broche 15]
+#
 class Encoders(Thread):
     def __init__(self):
         Thread.__init__(self)
@@ -58,8 +61,7 @@ if __name__=="__main__":
 
     moteurGauche = MotorDCWithSabertooth(MOTEUR_GAUCHE)
     moteurDroit = MotorDCWithSabertooth(MOTEUR_DROIT)
-    encoders = Encoders()  # Pour le moteur de gauche [Hall sensor A Vout (câble blue) broche 16, Hall sensor B Vout (câble move) broche 18]
-
+    encoders = Encoders()
     moteurGauche.sendSpeedMotor(5)
     moteurDroit.sendSpeedMotor(30)
     encoders.start()

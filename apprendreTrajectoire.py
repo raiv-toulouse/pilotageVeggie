@@ -3,6 +3,7 @@
 import serial
 import sys,os,time
 from asservissement import Asservissement
+from encodersEcartTiks import *
 # ENVIRONNEMENT !!
 if sys.platform.startswith("linux"):
     isLINUX = True
@@ -24,21 +25,21 @@ LIGHT_GAUCHE='k'
 LIGHT_DROITE='m'
 
 VITESSE_AVANCE = 25
-VITESSE_TOURNE = 60  # Pas plus que 63
+VITESSE_TOURNE = 30  # Pas plus que 63
 VITESSE_TOURNE_AUTRE = 0
 VITESSE_TOURNE_LIGHT = 20
-VITESSE_TOURNE_LIGHT_AUTRE = 10
+VITESSE_TOURNE_LIGHT_AUTRE = 5
 
 typesDeCommandes = {AVANT:'a',GAUCHE:'g',DROITE:'d',STOP:'s',QUIT:'q',LIGHT_GAUCHE:'k',LIGHT_DROITE:'l'}
 
 
-def enregistrerCommande(cmd,lesCmd,lesTimming,dernierEnregistrement):
-    dt = time.time()
+def enregistrerCommande(cmd,lesCmd,lesTik,dernierEnregistrement):
+    dt = encoders.pulseMG
     if dernierEnregistrement == 0:
-        temps = 0
+        tik = 0
     else:
-        temps = dt - dernierEnregistrement
-        lesTimming.append(temps)
+        tik = dt - dernierEnregistrement
+        lesTik.append(tik)
     lesCmd.append(typesDeCommandes[cmd])
     return dt
 
@@ -54,16 +55,18 @@ def getChar():
 
 ass = Asservissement()
 lesCmd = []
-lesTimming = []
+lesTik = []
 dernierEnregistrement = 0
 continuer = True
 commandeCourante = STOP
+encoders = Encoders()
+encoders.start()
 # Mémorisation des commandes envoyées au robot
 while(continuer):
     cmd = getChar()
     if (cmd in typesDeCommandes) and (cmd != commandeCourante): # On vient de changer de commande
         commandeCourante = cmd
-        dernierEnregistrement = enregistrerCommande(cmd,lesCmd,lesTimming,dernierEnregistrement)
+        dernierEnregistrement = enregistrerCommande(cmd,lesCmd,lesTik,dernierEnregistrement)
     if cmd == AVANT:
         ass.avancer(VITESSE_AVANCE)
     elif cmd == GAUCHE:
@@ -84,8 +87,8 @@ if SAUVEGARDE_FICHIER:
     # On stocke maintenant ces commandes dans un fichier
     file = open("commandes.txt","w")
     file.write("{},{},{},{},{}\n".format(VITESSE_AVANCE, VITESSE_TOURNE, VITESSE_TOURNE_AUTRE, VITESSE_TOURNE_LIGHT, VITESSE_TOURNE_LIGHT_AUTRE))
-    for i in range(len(lesTimming)):
+    for i in range(len(lesTik)):
         print(i)
         if lesCmd[i]!=typesDeCommandes[STOP]:
-            file.write(str(lesCmd[i])+","+str(lesTimming[i])+'\n')
+            file.write(str(lesCmd[i])+","+str(lesTik[i])+'\n')
     file.close()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from motorDCWithSabertooth import *
-from encoders import *
+from encodersEcartTiks import *
+import math
 import time
 
 VITESSE_DEMARRAGE = 25  # Vitesse au démarrage, pour sortir de la boue!
@@ -47,12 +48,16 @@ class Asservissement(Thread):
                 self.moteurDroit.sendSpeedMotor(self.vitesseDroite)
                 self.nouvelleConsigne = False
             else:  # On poursuit l'asservissement en cours
-                #
-                # Calculer ici la valeur de la nouvelle vitesse droite pour qu'elle s'ajuste à celle renvoyée par les encodeurs
-                #
-                nouvVitesseDroite = self.vitesseDroite + 0  # Remplacer 0 par la correction à approter
-                self.moteurDroit.sendSpeedMotor(nouvVitesseDroite)
-            time.sleep(0.001)
+                if self.vitesseDroite != self.encoders.speedMD/0.9:       # asservissement moteur droit
+                    self.vitesseDroite=int(self.vitesseDroite+(self.vitesseDroite-self.encoders.speedMD/0.9))
+                    self.nouvelleConsigne=True  
+                    time.sleep(0.1)
+                if self.vitesseGauche != self.encoders.speedMG/0.9:       # asservissement moteur gauche 
+                    self.vitesseGauche=int(self.vitesseGauche+(self.vitesseDroite-self.encoders.speedMG/0.9))
+                    self.nouvelleConsigne=True 
+                    time.sleep(0.1)
+                
+                time.sleep(0.1)
 
     def demarrage(self):
         incrementVitesse = VITESSE_DEMARRAGE / TEMPS_DEMARRAGE
@@ -88,15 +93,22 @@ class Asservissement(Thread):
 
 if __name__=="__main__":
     import time
+    test=True
     ass = Asservissement()
+    ass.encoders.start()
     ass.demarrage()
     time.sleep(5)
-    ass.avancer(30)
-    time.sleep(5)
-    ass.tourner(15,30)
-    time.sleep(5)
-    ass.tourner(30,15)
-    time.sleep(5)
+    for i in range(10):
+        print('MG : ', ass.encoders.speedMG, 'MD : ', ass.encoders.speedMD)
+        time.sleep(1)
+        
+    ass.avancer(10)
+    time.sleep(10)
+    #ass.tourner(15,30)
+    #time.sleep(5)
+    #ass.tourner(30,15)
+    #ass.avancer(10)
+    #time.sleep(5)
     ass.stopper()
     time.sleep(5)
     ass.toutArreter()

@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QThread
 import numpy as np
 from asservissement import *
+from encodersEcartTiks import *
 
 OFFSET_LENT = 30
 OFFSET_MOYEN = 40
@@ -20,7 +21,7 @@ class Controler(QThread):
         self.trackingEnCours = False
 
     def avancerDansRang(self):
-        self.webcam.nbNonDetections = 0
+        self.webcam.nbNonDetections = 3
         self.trackingEnCours = True
         while self.trackingEnCours:
             self.webcam.traiterImage()
@@ -68,23 +69,26 @@ class Controler(QThread):
             lesCmd.append((l[0], float(l[1])))
         file.close()
         # On rejoue les commandes lues
+        encoders=Encoders()
+        encoders.start()
         for (cmd, duree) in lesCmd:
-            if cmd == 'a':
-                print('Avance')
-                self.asservissement.avancer(vitesseAvance)
-            elif cmd == 'g':
-                print('Gauche')
-                self.asservissement.tourner(vitesseTourne, vitesseTourneAutre)  # A gauche
-            elif cmd == 'd':
-                print('Droite')
-                self.asservissement.tourner(vitesseTourneAutre, vitesseTourne)  # A droite
-            elif cmd == 'm':
-                print('Légèrement à gauche')
-                self.asservissement.tourner(vitesseTourneLight, vitesseTourneLightAutre)  # Légèrement à gauche
-            elif cmd == 'k':
-                print('Légèrement à droite')
-                self.asservissement.tourner(vitesseTourneLightAutre, vitesseTourneLight)  # Légèrement à droite
-            time.sleep(duree)
+            while encoders.pulseMG != dureee :
+                if cmd == 'a':
+                    print('Avance')
+                    self.asservissement.avancer(vitesseAvance)
+                elif cmd == 'g':
+                    print('Gauche')
+                    self.asservissement.tourner(vitesseTourne, vitesseTourneAutre)  # A gauche
+                elif cmd == 'd':
+                    print('Droite')
+                    self.asservissement.tourner(vitesseTourneAutre, vitesseTourne)  # A droite
+                elif cmd == 'm':
+                    print('Légèrement à gauche')
+                    self.asservissement.tourner(vitesseTourneLight, vitesseTourneLightAutre)  # Légèrement à gauche
+                elif cmd == 'k':
+                    print('Légèrement à droite')
+                    self.asservissement.tourner(vitesseTourneLightAutre, vitesseTourneLight)  # Légèrement à droite
+            encoders.pulseMG=0
         self.asservissement.stopper()
         print("============== Fin du demi tour")
 
@@ -97,8 +101,8 @@ class Controler(QThread):
     # La fonction principale qui déroule toutes les phases de l'épreuve
     def run(self):
         self.avancerDansRang()
-        self.demiTour()
-        self.avancerDansRang()
+        #self.demiTour()
+        #self.avancerDansRang()
         self.finEpreuve()
 
 #####################################################################################################
